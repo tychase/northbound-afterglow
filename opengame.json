@@ -1,0 +1,11 @@
+{
+  "$schema": "https://opengame.io/schema/opengame.json",
+  "title": "Northbound Afterglow",
+  "build": { "output": "play" },
+  "tagline": "auto",
+  "description": "auto",
+  "genre": "auto",
+  "kind": "game",
+  "controls": "auto",
+  "players": "auto"
+}

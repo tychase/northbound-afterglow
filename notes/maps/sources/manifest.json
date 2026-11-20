@@ -1,0 +1,93 @@
+{
+  "roads-2.geojson": {
+    "url": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Transportation/MapServer/2/query?f=geojson&where=1%3D1&geometry=-80.805%2C28.551%2C-80.792%2C28.569&geometryType=esriGeometryEnvelope&inSR=4326&outSR=4326&outFields=%2A&spatialRel=esriSpatialRelIntersects&returnGeometry=true&resultRecordCount=100000",
+    "retrievedUTC": "2026-11-19T23:08:33.581432+00:00",
+    "sha256": "ed778c73ea51338d6576fb5992b189f2b94d9f3d5e199f46c1af520d6b0b3e6c",
+    "bytes": 42,
+    "contentType": "application/geo+json;charset=UTF-8"
+  },
+  "roads-2-metadata.json": {
+    "url": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Transportation/MapServer/2?f=pjson",
+    "retrievedUTC": "2026-11-19T23:08:33.558724+00:00",
+    "sha256": "47ded9190770fd5f939e50b7c7f35f9c760c110bb59f4ba97a87e5f3cc93b230",
+    "bytes": 8743,
+    "contentType": "text/plain;charset=UTF-8"
+  },
+  "roads-6.geojson": {
+    "url": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Transportation/MapServer/6/query?f=geojson&where=1%3D1&geometry=-80.805%2C28.551%2C-80.792%2C28.569&geometryType=esriGeometryEnvelope&inSR=4326&outSR=4326&outFields=%2A&spatialRel=esriSpatialRelIntersects&returnGeometry=true&resultRecordCount=100000",
+    "retrievedUTC": "2026-11-19T23:08:34.134394+00:00",
+    "sha256": "0b4035f225455eb8ee9c665767014273746564ce1c854008f41f9e6036091cb8",
+    "bytes": 220086,
+    "contentType": "application/geo+json;charset=UTF-8"
+  },
+  "roads-6-metadata.json": {
+    "url": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Transportation/MapServer/6?f=pjson",
+    "retrievedUTC": "2026-11-19T23:08:33.570245+00:00",
+    "sha256": "8fc035f36073c1f50bb43c2186c7c73826959fce2820b007449b0f3ff5c310f7",
+    "bytes": 12820,
+    "contentType": "text/plain;charset=UTF-8"
+  },
+  "roads-8.geojson": {
+    "url": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Transportation/MapServer/8/query?f=geojson&where=1%3D1&geometry=-80.805%2C28.551%2C-80.792%2C28.569&geometryType=esriGeometryEnvelope&inSR=4326&outSR=4326&outFields=%2A&spatialRel=esriSpatialRelIntersects&returnGeometry=true&resultRecordCount=100000",
+    "retrievedUTC": "2026-11-19T23:08:33.793334+00:00",
+    "sha256": "eee0bb3ba713eb8dc4c5c5f5b99c5ea3951b1f53113addd7c7415f1ca26530d6",
+    "bytes": 56413,
+    "contentType": "application/geo+json;charset=UTF-8"
+  },
+  "roads-8-metadata.json": {
+    "url": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Transportation/MapServer/8?f=pjson",
+    "retrievedUTC": "2026-11-19T23:08:33.975761+00:00",
+    "sha256": "16def743372d8783b68c3566c5b88b049888fd4c37e823b9682bbdb49eabe832",
+    "bytes": 10342,
+    "contentType": "text/plain;charset=UTF-8"
+  },
+  "physical-metadata.json": {
+    "url": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_PhysicalFeatures/MapServer?f=pjson",
+    "retrievedUTC": "2026-11-19T23:08:33.999597+00:00",
+    "sha256": "d4df1ef4826bd8981dd8be60e53ee1735c06231b7240a527a329fb94765e75c7",
+    "bytes": 13750,
+    "contentType": "text/plain;charset=UTF-8"
+  },
+  "geocode-kennedy.json": {
+    "url": "https://geocoding.geo.census.gov/geocoder/locations/onelineaddress?address=4915+S+Washington+Ave%2C+Titusville%2C+FL+32780&benchmark=Public_AR_Current&format=json",
+    "retrievedUTC": "2026-11-19T23:08:34.093086+00:00",
+    "sha256": "0293e1a5152dd9e269f9d38030e8ee01a95216a33f8a762cd1a058a80a6b502d",
+    "bytes": 671,
+    "contentType": "application/json"
+  },
+  "geocode-rotary.json": {
+    "url": "https://geocoding.geo.census.gov/geocoder/locations/onelineaddress?address=4141+S+Washington+Ave%2C+Titusville%2C+FL+32780&benchmark=Public_AR_Current&format=json",
+    "retrievedUTC": "2026-11-19T23:08:34.311486+00:00",
+    "sha256": "8d62379e6845819a615b0197356120f5dc812b135117572a4cadd5772e18a8e0",
+    "bytes": 671,
+    "contentType": "application/json"
+  },
+  "census-rights.pdf": {
+    "url": "https://www2.census.gov/geo/pdfs/maps-data/data/tiger/tgrshp2026/TGRSHP2026_TechDoc_Ch1.pdf",
+    "retrievedUTC": "2026-11-19T23:08:34.930108+00:00",
+    "sha256": "140683126ec8388c74b877b7d12e01c3c512f2210685f9f166e32b372068d81a",
+    "bytes": 683094,
+    "contentType": "application/pdf"
+  },
+  "parks-padus.geojson": {
+    "url": "https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services/Manager_Name_PADUS/FeatureServer/0/query?f=geojson&where=1%3D1&geometry=-80.805%2C28.551%2C-80.792%2C28.569&geometryType=esriGeometryEnvelope&inSR=4326&outSR=4326&outFields=%2A&spatialRel=esriSpatialRelIntersects&returnGeometry=true&resultRecordCount=1000",
+    "retrievedUTC": "2026-11-19T23:08:34.219590+00:00",
+    "sha256": "7ecb4c88a3ddde24920ae155139ba91ded55ba217c1d3b9e5ee45f70c9d1ccf4",
+    "bytes": 3655,
+    "contentType": "application/json; charset=utf-8"
+  },
+  "parks-padus-metadata.json": {
+    "url": "https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services/Manager_Name_PADUS/FeatureServer?f=pjson",
+    "retrievedUTC": "2026-11-19T23:08:34.293388+00:00",
+    "sha256": "7b3bc28b688d48447eaa8e2b27b876b1e0a6f53b5daa664351afce6be0b3c951",
+    "bytes": 4152,
+    "contentType": "application/json; charset=utf-8"
+  },
+  "parks-padus-rights.json": {
+    "url": "https://www.arcgis.com/sharing/rest/content/items/d1c464bac63d44bc88a4a059dc69d259?f=json",
+    "retrievedUTC": "2026-11-19T23:08:34.286290+00:00",
+    "sha256": "0ebebf1a915433332c7451bbbe16587171f2499810e1c7e13793ce28a4a9c007",
+    "bytes": 6314,
+    "contentType": "application/json;charset=utf-8"
+  }
+}

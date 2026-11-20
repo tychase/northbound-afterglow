@@ -1,0 +1,38 @@
+{
+  "kind": "Manually transcribed factual excerpts, not complete source documents or imported artwork",
+  "observedUTC": "2026-11-19T23:14:40Z",
+  "purpose": "Identity and nominal cross-section corroboration only. Road and park geometry comes exclusively from the separately snapshotted federal datasets.",
+  "records": [
+    {
+      "url": "https://www.brevardfl.gov/ParksAndRecreation/ParkDirectory/Kennedy",
+      "title": "Kennedy Point Park",
+      "facts": {"name": "Kennedy Point Park", "address": "4915 S. Washington Ave, Titusville, FL 32780"},
+      "method": "County park directory text; confirms user-supplied identity/address. No county GIS geometry or photos reused."
+    },
+    {
+      "url": "https://www.brevardfl.gov/ParksAndRecreation/ParkDirectory/RotaryRiverfront",
+      "title": "Rotary Riverfront Park",
+      "facts": {"name": "Rotary Riverfront Park", "address": "4141 S. Washington Ave, Titusville, FL 32780"},
+      "method": "County park directory text; confirms user-supplied identity/address. No county GIS geometry or photos reused."
+    },
+    {
+      "url": "https://www.cflroads.com/d5fdotdesign/454217-1/454217-1_SR5_SR50_to_SR406_LRE.pdf",
+      "title": "FDOT LRE R3: Project Details by Sequence Report, 454217-1-52-01",
+      "sourceDocumentDate": "2025-10-16",
+      "location": "Sequence 1, SR 5 (US 1), SR 50 (Cheney Hwy) to Alhambra St; Resurfacing, Divided",
+      "facts": {"numberOfLanes": 4, "roadwayPavementWidthLeftFeet": 24, "roadwayPavementWidthRightFeet": 24},
+      "method": "Factual table excerpt extracted from the PDF. Supports a nominal 12-foot lane model north of Cheney; it is an estimate, not lane-edge survey evidence. South of Cheney the same width is an explicit modelling assumption. No FDOT geometry or illustrations imported."
+    },
+    {
+      "url": "https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-web-services",
+      "facts": {"officialManagerNameItem": "d1c464bac63d44bc88a4a059dc69d259", "officialManagerNameURL": "https://usgs.maps.arcgis.com/home/item.html?id=d1c464bac63d44bc88a4a059dc69d259"},
+      "method": "USGS page explicitly links the service item used. Exact item metadata, including its public-domain statement and disclaimer, is in parks-padus-rights.json."
+    }
+  ],
+  "rejectedAlternatives": [
+    {"url": "https://gis.brevardfl.gov/", "reason": "County GIS landing page says data/maps may not be resold without prior consent. Do not infer unrestricted reuse from an open-data label; none of that GIS geometry is used."},
+    {"url": "https://launchfromhere.com/wp-content/uploads/2024/02/MAP-WEB_2024EpicLaunchViewsMapTitusvilleFL_web.pdf", "reason": "Kennedy entry uses 4749 S Washington Ave rather than the county-verified 4915. Not adopted for either endpoint; authoritative public-domain PAD-US polygons were available."},
+    {"url": "https://www2.census.gov/geo/tiger/TIGER2026/AREALM/tl_2026_12_arealm.zip", "reason": "Neither requested park name was present in the Florida area-landmarks table. Exploratory download was removed; PAD-US supplies both."},
+    {"url": "https://gis1.usgs.gov/arcgis/rest/services?f=pjson", "reason": "Legacy service returned HTTP 502; the official USGS-linked ArcGIS Online PAD-US service was used instead."}
+  ]
+}

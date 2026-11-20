@@ -1,0 +1,8 @@
+.opengame/
+.env
+.env.*
+node_modules/
+evidence/
+__pycache__/
+*.pyc
+*.log

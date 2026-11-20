@@ -1,0 +1,82 @@
+{
+  "routeLengthMeters": 1480.69140238,
+  "sampleCount": 2000,
+  "junctionCount": 6,
+  "junctions": [
+    {
+      "name": "Cheney Hwy",
+      "station": 481.20179453,
+      "side": "west",
+      "lateralMeters": -1.9964905,
+      "sourceConnectionGapMeters": 0.0
+    },
+    {
+      "name": "Birch St",
+      "station": 679.10655063,
+      "side": "west",
+      "lateralMeters": -2.15100907,
+      "sourceConnectionGapMeters": 0.0
+    },
+    {
+      "name": "Pritchard St",
+      "station": 889.59952361,
+      "side": "west",
+      "lateralMeters": -2.0358465,
+      "sourceConnectionGapMeters": 0.0
+    },
+    {
+      "name": "Coquina Ave",
+      "station": 1081.03470841,
+      "side": "west",
+      "lateralMeters": -1.84733261,
+      "sourceConnectionGapMeters": 0.0
+    },
+    {
+      "name": "Knox McRae Dr",
+      "station": 1275.5984666,
+      "side": "west",
+      "lateralMeters": -1.89941004,
+      "sourceConnectionGapMeters": 0.0
+    },
+    {
+      "name": "Delespine Ave",
+      "station": 1474.6460768,
+      "side": "west",
+      "lateralMeters": -1.711789,
+      "sourceConnectionGapMeters": 0.0
+    }
+  ],
+  "inputFeatureCounts": {
+    "2": 0,
+    "6": 12,
+    "8": 50
+  },
+  "referenceMaximumErrorToNorthboundMeters": 0.0,
+  "referenceSha256": "e205551dd882f324e7f0585081e49722a60112a78bdc3392fcf811bc1e7c374b",
+  "carriagewaySeparationMinMeters": 10.33413973,
+  "carriagewaySeparationMaxMeters": 17.36893432,
+  "smoothingMaxDeviationFromMappedCenterlineMeters": 0.3211435,
+  "rightLaneDistanceToMappedCenterlineMinMeters": 1.72218985,
+  "rightLaneDistanceToMappedCenterlineMaxMeters": 2.14389554,
+  "kennedyAddressSnapMeters": 4.54732359,
+  "rotaryAddressToChosenEndAlongRouteMeters": 88.49709182,
+  "maximumSampleSpacingMeters": 0.74905506,
+  "netEastMeters": -181.91205899,
+  "netNorthMeters": 1449.97068823,
+  "headingMinimumDegrees": -19.30527559,
+  "headingMaximumDegrees": 4.66647712,
+  "excludedOutOfRouteConnections": [
+    {
+      "name": "Parker Dr",
+      "station": 1666.66088565,
+      "reason": "outside bounded drive"
+    },
+    {
+      "name": "Riveredge Dr",
+      "station": -112.18145961,
+      "reason": "outside bounded drive"
+    }
+  ],
+  "pass": true,
+  "meaning": "Numerical/source consistency only; no claim of surveyed positional accuracy or rendered gameplay verification."
+}
