@@ -95,7 +95,7 @@ function decal(mesh, text, points, color, size=.07, opts={}) {
 }
 function transformPoint(p, actor) {
   const c=Math.cos(actor.heading||0),s=Math.sin(actor.heading||0);
-  return [actor.x+p[0]*c+p[2]*s,p[1],actor.z-p[0]*s+p[2]*c];
+  return [actor.x+p[0]*c+p[2]*s,p[1]+(actor.y??0),actor.z-p[0]*s+p[2]*c];
 }
 function transformDirection(p, actor) {
   const c=Math.cos(actor.heading||0),s=Math.sin(actor.heading||0);
@@ -529,7 +529,7 @@ export function drawActors(ctx,P,s) {
       shadow(ctx,P,person,.27,.31,.17);
       const first=queue.length;
       enqueue(queue,traveler(s),person,P,eye);
-      const q=projectSafe(P,[person.x,.8,person.z]),depth=q?.depth??Math.hypot(person.x-eye[0],person.z-eye[2]);
+      const q=projectSafe(P,[person.x,.8+(person.y??0),person.z]),depth=q?.depth??Math.hypot(person.x-eye[0],person.z-eye[2]);
       for(let i=first;i<queue.length;i++){queue[i].actor=1;queue[i].actorDepth=depth;}
     }
     queue.sort((a,b)=>a.actor!==b.actor?b.actorDepth-a.actorDepth:a.actor===0?(a.layer-b.layer||b.depth-a.depth):b.depth-a.depth);

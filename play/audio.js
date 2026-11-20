@@ -104,7 +104,7 @@ export class DriveAudio {
     if (!this._run) this._buildRun();
     const r = this._run;
     const now = context.currentTime;
-    const speed = clamp(finite(s.speed), 0, 40);
+    const speed = clamp(Math.abs(finite(s.speed)), 0, 40);
     const dt = this._lastTime === null ? 1 / 60 : clamp(driveTime - this._lastTime, 1 / 240, 0.1);
     const acceleration = this._lastTime === null ? 0 : clamp((speed - this._lastSpeed) / dt, -9, 5);
     this._load += (acceleration - this._load) * (1 - Math.exp(-dt * 3));

@@ -1,3 +1,84 @@
-import assert from 'node:assert/strict';import {freshVisit,step,interact,projection,doorDistance,startEvent} from '../play/visit.js';import {routeAt,ROUTE_LENGTH} from '../play/route.js';
-const s=freshVisit(),frames=(state,n,keys=[])=>{for(let i=0;i<n;i++)step(state,new Set(keys),1/60)};
-assert(s.onFoot&&s.speed===0&&s.carZ===0&&doorDistance(s)<2.25);assert(Math.abs(s.carX-8)<.001);const init={...s.car};frames(s,175,['KeyS']);assert(s.person.stride>5.5);assert(s.walkZ< -5);assert.deepEqual(s.car,init);interact(s);assert(s.onFoot,'cannot board distantly');frames(s,174,['KeyW']);interact(s);assert(!s.onFoot);frames(s,360,['KeyW']);const pos={...s.car};assert(s.carZ>45&&Math.abs(s.carX)<1.2&&s.speed>14&&s.began!==null);interact(s);assert(!s.onFoot,'moving car exit rejected');const north=routeAt(s.carZ,s.carX);assert(Math.hypot(pos.x-north.x,pos.z-north.z)<1e-6);frames(s,200,['KeyS']);assert.equal(s.speed,0);interact(s);assert(s.onFoot);const park={...s.car};frames(s,240,['ArrowLeft']);assert.deepEqual(s.car,park);assert(doorDistance(s)>2.25);interact(s);assert(s.onFoot);frames(s,240,['ArrowRight']);interact(s);assert(!s.onFoot);let steps=0,heard=false;while(!s.arrived&&steps++<30000){step(s,new Set(['KeyW']),1/60);if(s.heard){assert(Math.abs(s.heard.age+s.heard.distance/343-s.t)<.002);heard=true}}assert(heard);assert(s.arrived&&s.speed===0&&s.carZ===ROUTE_LENGTH&&Math.abs(s.carX-8)<.01);interact(s);assert(s.onFoot);const endCar={...s.car};frames(s,300,['KeyS']);assert.deepEqual(s.car,endCar);frames(s,300,['KeyW']);interact(s);assert(!s.onFoot);const q=projection(1440,810,s).project(s.car.x,1,s.car.z);assert(q&&q.depth>2);const stationary=freshVisit();startEvent(stationary);frames(stationary,60*31);assert(stationary.onFoot&&stationary.heard&&stationary.firstHeard>stationary.ignition);console.log(JSON.stringify({pass:true,routeMeters:ROUTE_LENGTH,tests:['walk','reject remote boarding','enter','drive mapped lane','reject moving exit','brake','exit','return to same wagon','auto-park at Rotary','exit at Rotary','watch on foot','stationary receiver propagation'],arrival:s.firstHeard,stationaryArrival:stationary.firstHeard}));
+import assert from 'node:assert/strict';
+import {freshVisit,step,interact,projection,doorDistance,startEvent,canDrive,canWalk} from '../play/visit.js';
+import {routeAt,ROUTE_LENGTH} from '../play/route.js';
+import {PARKS,PIER_HEIGHT,parkPavementAt} from '../play/riverfront.js';
+import {branchAt,section} from '../play/us1.js';
+
+function frames(state,n,...controls) {
+  const keys=new Set(controls);
+  for(let i=0;i<n;i++)step(state,keys,1/60);
+}
+function until(state,predicate,max,...controls) {
+  const keys=new Set(controls);
+  for(let i=0;i<max&&!predicate(state);i++)step(state,keys,1/60);
+  assert(predicate(state),JSON.stringify({x:state.carX,z:state.carZ,speed:state.speed,angle:state.carBearing}));
+}
+
+const s=freshVisit(), parked={...s.car};
+assert(s.onFoot && parkPavementAt(s.carX,s.carZ) && doorDistance(s)<2.15);
+frames(s,175,'KeyS');
+assert(s.person.stride>5.5);
+assert.deepEqual(s.car,parked);
+interact(s);
+assert(s.onFoot,'cannot board from a distance');
+frames(s,173,'KeyW');
+interact(s);
+assert(!s.onFoot);
+
+until(s,s=>s.speed>=4,120,'KeyW');
+until(s,s=>s.carX<=5.1,320);
+assert.equal(s.began,null,'the countdown waits for departure');
+until(s,s=>s.carBearing>=-.071,155,'KeyD');
+until(s,s=>s.carZ>35,300);
+assert(s.began!==null && Math.abs(s.carX)<1);
+const mapped=routeAt(s.carZ,s.carX);
+assert(Math.hypot(mapped.x-s.car.x,mapped.z-s.car.z)<1e-6);
+interact(s);
+assert(!s.onFoot,'cannot exit while moving');
+
+until(s,s=>s.carZ>=1460,5000,'KeyW');
+until(s,s=>s.speed<=4,200,'KeyS');
+assert(s.carZ>ROUTE_LENGTH,'crossing the old finish station does not park the car');
+until(s,s=>s.carZ>=1499.5,400);
+until(s,s=>s.carBearing>=1.49,180,'KeyD');
+until(s,s=>s.carX>=28,600);
+until(s,s=>s.speed===0,90,'KeyS');
+assert(parkPavementAt(s.carX,s.carZ));
+assert(s.heard && s.firstHeard-s.ignition>55);
+assert(Math.abs(s.heard.age+s.heard.distance/343-s.t)<.002);
+interact(s);
+assert(s.onFoot && doorDistance(s)<.02);
+const rotaryCar={...s.car};
+frames(s,80,'KeyW');
+assert.deepEqual(s.car,rotaryCar);
+frames(s,79,'KeyS');
+interact(s);
+assert(!s.onFoot);
+until(s,s=>s.carX<26,160,'KeyX');
+assert(s.speed<0);
+interact(s);
+assert(!s.onFoot,'cannot exit while reversing');
+until(s,s=>s.speed===0,90,'KeyS');
+assert(projection(1440,810,s).project(s.car.x,1,s.car.z)?.depth>2);
+
+const sideStreet=freshVisit({onFoot:false,carX:-1,carZ:884.2,carBearing:0,speed:4});
+until(sideStreet,s=>s.carBearing<=-1.49,180,'KeyA');
+until(sideStreet,s=>s.carX<-45,900);
+assert.equal(branchAt(sideStreet.carX,sideStreet.carZ)?.name,'Pritchard St');
+
+const median=section(240);
+assert(!canDrive((median.mw+median.me)/2,240));
+assert(!canDrive(10,450));
+assert(!canDrive(100,1438));
+assert(!canWalk(80,1420));
+assert(!canWalk(200,1450));
+const pier=freshVisit({walkX:23,walkZ:1436});
+frames(pier,190,'KeyD');
+assert(pier.walkX>28 && pier.person.y===PIER_HEIGHT);
+
+const stationary=freshVisit();
+startEvent(stationary);
+frames(stationary,60*67);
+assert(stationary.onFoot && stationary.heard && stationary.firstHeard-stationary.ignition>55);
+assert.equal(PARKS.length,2);
+console.log('PASS · park departure and arrival, real turns, manual parking, reverse, side street, pier and launch audio');

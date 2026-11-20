@@ -6,7 +6,7 @@ Start beside your station wagon at Kennedy Point Park in Titusville, Florida. Dr
 
 ![In-game view approaching Cheney Highway on US 1 at dusk](docs/cheney-approach.jpg)
 
-**Status:** Playable work in progress (Field Drive 03). This is the public source repository for the contest project; the official OpenGame entry has not yet been submitted.
+**Status:** Playable work in progress (Field Drive 04). This is the public source repository for the contest project; the official OpenGame entry has not yet been submitted.
 
 ## Play locally
 
@@ -23,6 +23,7 @@ Open **http://127.0.0.1:8000/** and choose **Visit Kennedy Point**. Headphones m
 | G | Enter at the driver's door, or exit once stopped |
 | W / ↑, S / ↓ | Accelerate and brake; walk forward or back on foot |
 | A / D or ← / → | Steer or walk sideways |
+| X | Reverse the wagon |
 | C / E | Switch chase/cockpit view or look toward the launch |
 | F / R | Open the passenger window or toggle the radio |
 | Space | Save a listening note in this browser |
@@ -30,7 +31,9 @@ Open **http://127.0.0.1:8000/** and choose **Visit Kennedy Point**. Headphones m
 
 ## What's mapped and what's imagined
 
-The 1.48 km drive follows the northbound carriageway of South Washington Avenue from Kennedy Point Park to Rotary Riverfront Park. The six named side roads follow Census geometry; turn lanes, medians and frontage are interpreted from a 2023 USDA aerial photograph. The car, walker, sky paintings and synthesized audio were made for this game. Building facades, park access and the distant launch are illustrated rather than surveyed; this is not a navigation tool or a reconstruction of a particular mission.
+The main 1.48 km alignment follows the northbound carriageway of South Washington Avenue. The modeled section has both carriageways, six named side-road approaches, and room to turn into either park. The wagon starts inside Kennedy Point Park. Follow the driveway and turn right onto US 1, then turn right into Rotary Riverfront Park when you reach its sign. You can park, get out, and walk south along the river to the fishing pier. The launch starts when you leave Kennedy Point or choose **Watch here**.
+
+Census geometry anchors the named roads. The lane edges, park pavement, shoreline and pier approach are approximate traces and interpretations of the checked-in 2023 USDA aerial photograph. The pier dimensions come from [Brevard County](https://www.brevardfl.gov/ParksAndRecreation/ParkDirectory/RotaryRiverfront), and the horizon bearing and distance use NASA's [published 39A reference](https://netspublic.grc.nasa.gov/main/FINAL%20EA%20_LC-48_5_30_2019.pdf). Building facades, launch hardware and flight remain illustrated. The wagon, walker, sky paintings and synthesized audio were made for this game.
 
 Map sources, reuse statements and the offline route builder are in [notes/maps](notes/maps/README.md). The [road-art reference](authoring/roadsurvey/README.md) documents the USDA imagery. `play/` contains the full browser game, including local art. It uses JavaScript modules, Canvas 2D and Web Audio.
 

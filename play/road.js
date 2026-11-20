@@ -2,15 +2,14 @@
  * route.js owns the cartographic alignment, stationing and named junctions.
  * Here x means lateral metres (0 = right NB lane centre), z means station;
  * ONLY the projection boundary converts these to absolute east/north metres.
- * Lane widths, shoreline, vegetation and both park aprons are artist estimates,
- * NOT surveyed road edges, building footprints, park plans or access guidance.
- * Scale anchors: estimated 3.6 m lanes and a 1.55 m driving eye. Both parks
- * reserve x=5..16, station ±18 m for parking / a car door / walking; the wider
- * apron joins the road without a curb. The parent owns actors and collision.
+ * Lane widths, vegetation and shoreline are aerial interpretations.
+ * Park pavement is shared with the traversal model in riverfront.js.
  * No invented businesses, cross streets, causeway, sky or plume overlay.
  */
 import {routeAt, ROUTE_LENGTH} from './route.js';
-import {bankAt as shore,westAt,section,streets as CROSSINGS,lots,layers,frontage,signal} from './us1.js';
+import {westAt,section,streets as CROSSINGS,lots,layers,frontage,signal} from './us1.js';
+
+import {bankAt as shore,PARKS,PIER,PIER_HEIGHT,parkPavementAt} from './riverfront.js';
 
 const C = {
   asphalt: '#3b414b', asphaltFar: '#746c76', tire: '#303741',
@@ -124,12 +123,6 @@ function makeAsphalt(seed) {
   for(const x of [21,53,94,126,166,198,239,271,312,344]){const q=g.createLinearGradient(x-9,0,x+9,0);q.addColorStop(0,'#333d4500');q.addColorStop(.5,'#202c3933');q.addColorStop(1,'#333d4500');g.fillStyle=q;g.fillRect(x-9,0,18,768);}
   return a;
 }
-// Numeric scene contract: route/junction positions are supplied map data;
-// these widths and park extents are deliberately replaceable scenic estimates.
-const PARKS = [
-  {name:'Kennedy Point Park',station:0},
-  {name:'Rotary Riverfront Park',station:ROUTE_LENGTH}
-];
 // Street widths and grades come from the aerial interpretation.
 const parkNear=(z,pad=32)=>PARKS.some(p=>Math.abs(z-p.station)<pad);
 const crossingAt=(z,side,pad=0)=>CROSSINGS.find(j=>Math.abs(z-j.station)<j.halfWidth+pad&&(!side||j.side===side||j.side==='both'));
@@ -155,7 +148,7 @@ const TREES=[];
     }
   }
 }
-const SIGNS=PARKS.map((p,i)=>({x:19.8,z:p.station-24,type:`park${i}`,h:2.9,w:4.8,park:p}));
+const SIGNS=PARKS.map((p,i)=>({x:p.sign[0],z:p.sign[1],type:`park${i}`,h:2.9,w:4.8,park:p}));
 for(const z of [72,ROUTE_LENGTH*.42,ROUTE_LENGTH*.78]){
   if(!roadsideClear(4.9,z,2))SIGNS.push({x:4.9,z,type:'route',h:4.2,w:1.35});
 }
@@ -265,8 +258,8 @@ function texturedFace(F,pts,img,div=4,alpha=1){
     textureTriangle(g,img,[uv[0],uv[1],uv[2]],[p[0],p[1],p[2]]);textureTriangle(g,img,[uv[0],uv[2],uv[3]],[p[0],p[2],p[3]]);
   }g.globalAlpha=old;
 }
-// Only the distant river uses east/north axes directly. The foreground bank
-// is a scenic ribbon, not a traced or surveyed shoreline. No causeway is drawn.
+// Only the distant river uses east/north axes directly. Near shore follows
+// station-based samples from the aerial. No causeway is drawn.
 const RIVER=(()=>{
   const points=[];for(let z=-500;z<ROUTE_LENGTH+700;z+=100)points.push(routeAt(z));
   return {east:Math.max(...points.map(p=>p.x))+140,south:Math.min(...points.map(p=>p.z))-16000,north:Math.max(...points.map(p=>p.z))+16000};
@@ -283,7 +276,7 @@ function groundPass(F){
   const lo=Math.max(-500,Math.floor((z-ROAD.far)/12)*12),hi=Math.min(ROUTE_LENGTH+700,z+ROAD.far);
   const cuts=[lo,hi];for(let zz=lo+12;zz<hi;zz+=12)cuts.push(zz);
   // Include exact mouth edges: a tessellation cell must never bridge an opening.
-  for(const p of PARKS)for(const d of [-32,-22,22,32])if(p.station+d>lo&&p.station+d<hi)cuts.push(p.station+d);
+  for(const p of PARKS)for(const [x,z] of p.pavement)if(x<12&&z>lo&&z<hi)cuts.push(z);
   for(const j of CROSSINGS)for(const d of [-17,-13,-10,-8,-5.8,-3.5,j.halfWidth,5.8,8,13,16])if(j.station+d>lo&&j.station+d<hi)cuts.push(j.station+d);
   cuts.sort((a,b)=>a-b);const segments=[];
   for(let i=1;i<cuts.length;i++)if(cuts[i]-cuts[i-1]>.00001){const a=cuts[i-1],b=cuts[i];segments.push({a,b,m:(a+b)/2,d:F.depth(-6,(a+b)/2)});}
@@ -308,17 +301,33 @@ function groundPass(F){
   const roadGrad=g.createLinearGradient(0,P.horizon,0,P.h);roadGrad.addColorStop(0,C.asphaltFar);roadGrad.addColorStop(.13,'#51535f');roadGrad.addColorStop(.55,C.asphalt);roadGrad.addColorStop(1,'#343c46');
   for(const {a,b,m} of segments){
     if(Math.max(F.depth(-180,a),F.depth(shore(a),a),F.depth(-180,b),F.depth(shore(b),b))<ROAD.near)continue;
-    const A=shore(a),B=shore(b),east=crossingAt(m,'east',1),west=crossingAt(m,'west',1),park=PARKS.find(p=>Math.abs(m-p.station)<32);
+    const A=shore(a),B=shore(b);
     ground(F,-180,2.65,a,b,'#45554b');
     face(F,[[ROAD.right,0,a],[A-.7,0,a],[B-.7,0,b],[ROAD.right,0,b]],'#4b5b4e');
-    us.cover(a,b,roadGrad,park);
-    if(park){
-      // Continuous level paving: car centre 8, door/walker 6.5, clear area
-      // 5..16 x ±18. No tree, post, curb, rail or wheel stop crosses it.
-      const edge=t=>4.55+18.45*clamp((32-Math.abs(t-park.station))/10,0,1);
-      const ea=edge(a),eb=edge(b);
-      face(F,[[ROAD.right,.008,a],[ea,.008,a],[eb,.008,b],[ROAD.right,.008,b]],'#62696b');
-      if(Math.abs(m-park.station)<22){ground(F,11.6,23,a,b,'#a29681',.012);ground(F,11.6,11.73,a,b,'#c1b398',.016);}
+    us.cover(a,b,roadGrad,parkPavementAt(2.55,m));
+  }
+  for(const park of PARKS){
+    if(Math.abs(park.station-z)>750)continue;
+    face(F,park.pavement.map(([x,station])=>[x,.012,station]),'#747271');
+  }
+  if(Math.abs(1438-z)<700){
+    const [a,b,c,d]=PIER;
+    const path=[[24,1436],[29,1449],[34,1467],[46,1480],[53,1492],[45,1503]];
+    for(let i=1;i<path.length;i++){
+      const [x1,z1]=path[i-1],[x2,z2]=path[i];
+      const length=Math.hypot(x2-x1,z2-z1),dx=(z2-z1)/length,dz=-(x2-x1)/length;
+      face(F,[[x1-dx,.017,z1-dz],[x1+dx,.017,z1+dz],
+        [x2+dx,.017,z2+dz],[x2-dx,.017,z2-dz]],'#a99a84');
+    }
+    face(F,[a,b,c,d].map(([x,station])=>[x,PIER_HEIGHT,station]),'#a19484');
+    for(const [p,q] of [[a,b],[d,c],[b,c]]){
+      face(F,[[p[0],.22,p[1]],[q[0],.22,q[1]],
+        [q[0],PIER_HEIGHT,q[1]],[p[0],PIER_HEIGHT,p[1]]],'#776b62');
+      worldLine(F,[[p[0],1.38,p[1]],[q[0],1.38,q[1]]],'#b6a18a',1.25);
+    }
+    for(const [p,q] of [[a,b],[d,c]])for(let i=0;i<=38;i++){
+      const x=p[0]+(q[0]-p[0])*i/38, station=p[1]+(q[1]-p[1])*i/38;
+      worldLine(F,[[x,-.47,station],[x,1.38,station]],'#897d6d',1);
     }
   }
   us.lotGround();us.branches();
@@ -334,20 +343,19 @@ function groundPass(F){
     for(const x of [-1.83,westAt(zz)+4.05])ground(F,x-.082,x+.082,zz,zz+3.15,'#e0d6bf',.021);
     const q=section(zz);if(q.pocket>2.7){ground(F,-5.58,-5.44,zz,zz+11.98,'#d5cbb7',.021);if(q.pocket>5.7)ground(F,-8.58,-8.44,zz,zz+3.15,'#d5cbb7',.021)}
   }us.paint();
-  for(const p of PARKS){
-    if(Math.abs(p.station-z)>160)continue;
-    // Open-sided parallel bays, not barriers; the central bay fits a car at x=8.
-    for(const dz of [-10,0,10]){
-      const zz=p.station+dz;
-      ground(F,6.1,10.6,zz-3.5,zz-3.42,'#c1b9a3',.019);
-      ground(F,10.48,10.6,zz-3.5,zz+3.5,'#c1b9a3',.019);
+  for(const [x,a,b] of [[26,16,22],[29,16,22],[32,16,22]]){
+    if(Math.abs(z-19)>160)break;
+    ground(F,x-.04,x+.04,a,b,'#bdb5a1',.019);
+  }
+  if(Math.abs(z-1495)<160){
+    for(let station=1499;station<1509;station+=2.6){
+      ground(F,33,39,station,station+.08,'#c3b8a2',.019);
     }
-    // A flush walking spur to a river overlook; no claim to an actual path plan.
-    ground(F,23,27,p.station-3,p.station+3,'#a69a83',.012);
   }
   for(let n=Math.floor((z-110)/8);n*8<z+200;n++){
     const zz=n*8+hash(n+181)*4;if(roadsideClear(6,zz,8))continue;
     const bank=shore(zz),x=5+hash(n+235)*(bank-10),w=.5+hash(n+32)*2;
+    if(parkPavementAt(x,zz))continue;
     face(F,[[x,.018,zz],[x+w,.018,zz+.8],[x+w*1.5,.018,zz+4],[x-.3,.018,zz+5.2]],n%3?'#52634f':'#65705a');
   }
   for(let n=Math.floor((z-100)/21);n*21<z+100;n++){
@@ -429,9 +437,4 @@ export function drawRoad(ctx,P,s){
   for(const o of queue){if(o.kind==='signal')signal(F,helpers,o.data);else if(o.kind==='front')frontage(F,helpers,o.data);else if(o.kind==='tree')tree(F,o.data);else if(o.kind==='sign')sign(F,o.data);else if(o.kind==='lamp')lamp(F,...o.data);else if(o.kind==='bench')bench(F,...o.data);else utility(F,o.data);}
   ctx.restore();drawRoad.stats.drawn=F.drawn;
 }
-// Exposed numeric art contract for the parent's access/collision qualification.
-// These are not surveyed footprints and do not install or move any collider.
-drawRoad.layout=Object.freeze({alignment:'route.js mapped alignment; x=0 is the modelled right NB lane centre',dimensions:'artist-estimated lane widths, apron and shoreline',
-  parks:Object.freeze(PARKS.map(p=>Object.freeze({...p,side:'east',clear:{minLateral:5,maxLateral:16,halfLength:18},parkingLateral:8,doorLateral:6.5}))),
-  junctions:Object.freeze(CROSSINGS.map(j=>Object.freeze({...j}))) });
 if(typeof document!=='undefined'||typeof OffscreenCanvas!=='undefined')queueMicrotask(prepareArt);

@@ -1,4 +1,80 @@
-// Browser acceptance via actual controls. No injected world state or test clock.
-const {chromium}=require(process.env.PLAYWRIGHT_PATH||'playwright-core');const assert=require('node:assert/strict'),fs=require('fs'),path=require('path');const out=path.resolve(__dirname,process.env.CAPTURE_DIR||'../evidence/round-03');fs.mkdirSync(out,{recursive:true});
-(async()=>{const browser=await chromium.launch({args:['--no-sandbox','--disable-dev-shm-usage']});const p=await browser.newPage({viewport:{width:1366,height:768},deviceScaleFactor:1});const errors=[],states=[];p.on('pageerror',e=>errors.push(String(e)));p.on('response',r=>{if(r.status()>=400)errors.push(r.status()+' '+r.url())});const snap=async n=>p.screenshot({path:path.join(out,n+'.jpg')});const read=async()=>p.evaluate(()=>{const a=coastRead();delete a.timings;return a});const state=async n=>{const a=await read();states.push({stage:n,...a});return a};const until=(fn,timeout=35000)=>p.waitForFunction(fn,null,{timeout});const holdUntil=async(key,fn,timeout)=>{await p.keyboard.down(key);try{await until(fn,timeout)}finally{await p.keyboard.up(key)}};
-try{await p.goto(process.env.PREVIEW_URL||'http://127.0.0.1:4322');await until(()=>window.coastRead?.().build===3&&coastRead().frames>0);await snap('title');await p.click('#helpBtn');assert(await p.locator('#guide').isVisible());await p.click('#back');await p.click('#start');await until(()=>coastRead().elapsed>1);const spawn=await state('spawn');assert(spawn.onFoot&&spawn.carZ===0&&spawn.doorDistance<2.25);await snap('kennedy-point');await p.click('#mapBtn');assert(await p.locator('#mapcard').isVisible());await snap('mapped-route');await p.click('#mapBtn');await holdUntil('KeyS',()=>coastRead().doorDistance>3.75);await p.keyboard.press('KeyG');assert((await read()).onFoot);await holdUntil('KeyW',()=>coastRead().doorDistance<1.6);assert.deepEqual((await read()).car,spawn.car);await p.keyboard.press('KeyG');await until(()=>!coastRead().onFoot);await holdUntil('ArrowUp',()=>coastRead().speed>17);const drv=await state('chase');assert(!drv.cabin&&drv.carZ>23&&drv.carX<1.2);await snap('northbound-chase');await p.keyboard.press('KeyG');assert(!(await read()).onFoot);await p.keyboard.press('KeyC');await until(()=>coastRead().cabin);await p.waitForTimeout(650);await snap('cockpit');await p.keyboard.press('KeyC');await p.keyboard.press('KeyE');await until(()=>coastRead().time>12&&coastRead().look>.95);await snap('launch');await p.keyboard.press('KeyE');await holdUntil('ArrowDown',()=>coastRead().speed===0);await p.keyboard.press('KeyG');await until(()=>coastRead().onFoot);const stopped=await state('roadside');await snap('out-of-car');await until(()=>coastRead().heard!==null,39000);await p.keyboard.press('Space');assert((await read()).mark!==null);await p.keyboard.press('KeyP');const frozen=await state('pause');await p.waitForTimeout(300);assert.equal((await read()).elapsed,frozen.elapsed);await p.click('#start');await p.keyboard.press('KeyG');await until(()=>!coastRead().onFoot);assert.equal((await read()).carZ,stopped.carZ);await holdUntil('ArrowUp',()=>coastRead().carZ>=438,90000);await snap('cheney-approach');await holdUntil('ArrowUp',()=>coastRead().carZ>=863,90000);await snap('prit-chase');await holdUntil('ArrowUp',()=>coastRead().carZ>=1240,90000);await snap('knox-approach');await holdUntil('ArrowUp',()=>coastRead().arrived,240000);assert.equal((await read()).carZ,(await read()).routeLength);await p.keyboard.press('KeyG');await until(()=>coastRead().onFoot);await snap('rotary-arrival');const car=(await state('arrived')).car;await holdUntil('KeyS',()=>coastRead().doorDistance>4.2);assert.deepEqual((await read()).car,car);await p.keyboard.press('KeyP');await p.click('#finish');await snap('end');assert(await p.locator('#record').isVisible());await p.reload();await until(()=>window.coastRead?.().mode==='title');assert(await p.locator('#record').isVisible());await p.click('#start');assert((await read()).onFoot&& (await read()).mark===null);assert.deepEqual(errors,[]);fs.writeFileSync(path.join(out,'journey.json'),JSON.stringify({states,errors,ok:true},null,2));console.log(JSON.stringify({pass:true,states:states.map(s=>s.stage),routeMeters:states.at(-1).routeLength,errors}))}catch(e){console.error(e,errors);await snap('failure').catch(()=>{});process.exitCode=1}finally{await browser.close()}})();
+// Browser acceptance through the public screen controls and keyboard.
+const {chromium}=require(process.env.PLAYWRIGHT_PATH||'playwright-core');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+
+(async()=>{
+  const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH,
+    args:['--no-sandbox','--disable-dev-shm-usage']});
+  const page=await browser.newPage({viewport:{width:1280,height:720},deviceScaleFactor:1});
+  const out=path.resolve(__dirname,process.env.CAPTURE_DIR||'../evidence/round-04');
+  fs.mkdirSync(out,{recursive:true});
+  const errors=[];
+  page.on('pageerror',e=>errors.push(String(e)));
+  page.on('response',r=>{if(r.status()>=400)errors.push(r.status()+' '+r.url());});
+  const shot=name=>page.screenshot({path:path.join(out,name+'.jpg')});
+  const read=()=>page.evaluate(()=>coastRead());
+  const until=(fn,timeout=20000)=>page.waitForFunction(fn,null,{timeout});
+  const hold=async(key,fn,timeout)=>{
+    await page.keyboard.down(key);
+    try{await until(fn,timeout)}finally{await page.keyboard.up(key);}
+  };
+  try{
+    await page.goto(process.env.PREVIEW_URL||'http://127.0.0.1:4322/');
+    await until(()=>window.coastRead?.().build===4&&coastRead().frames>0);
+    await page.click('#helpBtn');
+    assert(await page.locator('#guide').isVisible());
+    await page.click('#back');
+    await page.click('#start');
+    await until(()=>coastRead().elapsed>.2);
+    const start=await read();
+    assert(start.onFoot&&start.carX>20&&start.doorDistance<2.15);
+    await shot('kennedy-point');
+    await page.keyboard.press('KeyG');
+    await until(()=>!coastRead().onFoot);
+    await hold('KeyW',()=>coastRead().speed>=4);
+    await until(()=>coastRead().carX<=5.2);
+    await hold('KeyD',()=>coastRead().carBearing>=-.09);
+    await until(()=>coastRead().carZ>35);
+    await hold('KeyW',()=>coastRead().speed>=17);
+    await page.keyboard.press('KeyC');
+    await until(()=>coastRead().cabin);
+    await page.keyboard.press('KeyE');
+    await until(()=>coastRead().look>.97&&coastRead().time>13);
+    await shot('launch');
+    await page.keyboard.press('KeyE');
+    await page.keyboard.press('KeyC');
+    await hold('KeyW',()=>coastRead().carZ>=1457,180000);
+    await hold('KeyS',()=>coastRead().speed<=4.2);
+    await until(()=>coastRead().carZ>=1499.5);
+    await hold('KeyD',()=>coastRead().carBearing>=1.48);
+    await until(()=>coastRead().carX>=25);
+    await hold('KeyS',()=>coastRead().speed===0);
+    await page.keyboard.press('KeyG');
+    await until(()=>coastRead().onFoot&&coastRead().heard!==null);
+    const parked=await read();
+    assert(parked.carZ>parked.routeLength&&parked.carX>25);
+    await shot('rotary-parking');
+    await page.keyboard.press('Space');
+    assert((await read()).mark!==null);
+    await page.keyboard.press('KeyB');
+    assert(await page.locator('#mapcard').isVisible());
+    await shot('map');
+    await page.keyboard.press('KeyP');
+    const frozen=await read();
+    await page.waitForTimeout(250);
+    assert.equal((await read()).elapsed,frozen.elapsed);
+    await page.click('#finish');
+    assert(await page.locator('#record').isVisible());
+    await page.reload();
+    await until(()=>window.coastRead?.().mode==='title');
+    assert(await page.locator('#record').isVisible());
+    assert.deepEqual(errors,[]);
+    console.log('PASS · keyboard drive, launch glance, manual parking, delayed audio, map and saved note');
+  } catch(e) {
+    console.error(e,errors,await read().then(({timings,...state})=>state).catch(()=>{}));
+    await shot('failure').catch(()=>{});
+    process.exitCode=1;
+  } finally {await browser.close();}
+})();

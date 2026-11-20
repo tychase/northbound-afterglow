@@ -6,10 +6,15 @@ function sample(keys,z){let i=1;while(i<keys.length-1&&z>keys[i][0])i++;const a=
 // Western outer edge varies independently from the NB driver's lane. Long planted median
 // tapers into side-by-side left-turn pockets south of 50 rather than a continuous TWLTL.
 const edge=[[-200,-17],[0,-18.0],[110,-21.7],[268,-23.8],[390,-23.1],[460,-23],[520,-22.7],[660,-21.0],[800,-20.3],[920,-20],[1080,-20],[1240,-21.8],[1330,-21.4],[1480,-21.4],[1700,-21.4]];
-const shoreKey=[[-100,48],[5,69],[125,66],[210,66],[248,65],[312,58],[342,46],[354,24],[420,22],[480,24],[550,19],[625,19],[683,36],[720,29],[780,39],[860,30],[940,26],[985,40],[1030,66],[1085,56],[1145,30],[1260,29],[1355,25],[1430,23],[1462,42],[1492,58],[1550,54]];
-export const bankAt=z=>sample(shoreKey,z),westAt=z=>sample(edge,z);
+export const westAt=z=>sample(edge,z);
 export const streets=JUNCTIONS.map((j,i)=>{const plane=routeAt(j.station);const co=Math.cos(plane.heading),si=Math.sin(plane.heading);const pts=j.geometry.map(([x,z])=>[(x-plane.x)*co-(z-plane.z)*si,j.station+(x-plane.x)*si+(z-plane.z)*co]);return {...j,i,pts,halfWidth:[11.4,3.6,3.2,3.6,5.9,3.5][i],signal:i===0||i===4,spread:i===0?8:i===4?5:3.3}});
 function branchZ(j,x){const k=j.pts;let i=1;while(i<k.length-1&&x<k[i][0])i++;const a=k[i-1],b=k[i];return a[1]+(b[1]-a[1])*clamp((x-a[0])/(b[0]-a[0]),0,1)}
+const branchMouth = j => westAt(j.station);
+const branchWidth = (j,x) => j.halfWidth+j.spread*Math.pow(clamp(1-(branchMouth(j)-x)/11,0,1),2);
+export function branchAt(x,z) {
+ return streets.find(j => Math.abs(z-j.station)<65 && x>=j.pts.at(-1)[0] && x<=branchMouth(j)+1
+  && Math.abs(z-branchZ(j,x))<branchWidth(j,x));
+}
 const medianOpen=z=>streets.find(j=>Math.abs(z-j.station)<(j.signal?13:5.8));
 function pocket(z){for(const j of streets){const d=j.station-z;if(d>0&&d<(j.i===0?151:j.i===4?82:48)){const l=j.i===0?151:j.i===4?82:48;return clamp((l-d)/23,0,1)*(j.i===0?6.5:2.95)}}return 0}
 export function section(z){const w=westAt(z),mw=w+8.1,me=Math.max(mw+.38,-5.75-pocket(z));return {w,mw,me,pocket:pocket(z),open:!!medianOpen(z)}}
@@ -19,12 +24,12 @@ export {lots};
 export function layers(F,H){const {face,ground,worldLine}=H;
  const quad=(x1,x2,z1,y1,x3,x4,z2,y2,c)=>face(F,[[x1,y1,z1],[x2,y1,z1],[x4,y2,z2],[x3,y2,z2]],c);
  const strokeRoad=(x1,x2,z1,z2,c,y=.021)=>ground(F,x1,x2,z1,z2,c,y);
- function cover(a,b,grad,park){const m=(a+b)/2,A=section(a),B=section(b),M=section(m);quad(A.w,2.6,a,0,B.w,2.6,b,0,grad);
+ function cover(a,b,grad,access){const m=(a+b)/2,A=section(a),B=section(b),M=section(m);quad(A.w,2.6,a,0,B.w,2.6,b,0,grad);
   // Distinct paving on opposite carriageway. Curb returns are separate from the highway edge.
   quad(A.w,A.mw,a,.001,B.w,B.mw,b,.001,'#57575e');
   const mouth=streets.some(j=>Math.abs(m-branchZ(j,M.w))<j.halfWidth+j.spread+1);
   if(!mouth){quad(A.w-3,A.w,a,.02,B.w-3,B.w,b,.02,'#79766e');quad(A.w-2.8,A.w-1.4,a,.07,B.w-2.8,B.w-1.4,b,.07,'#b7a899');quad(A.w-.43,A.w-.08,a,.06,B.w-.43,B.w-.08,b,.06,'#c0afa2');}
-  if(!park){strokeRoad(2.56,3.04,a,b,'#a5988c');strokeRoad(3.04,3.25,a,b,'#dbbfa4',.09);strokeRoad(3.25,4.95,a,b,'#a69b8e',.09);strokeRoad(1.82,1.97,a,b,'#ddd6bf')}
+  if(!access){strokeRoad(2.56,3.04,a,b,'#a5988c');strokeRoad(3.04,3.25,a,b,'#dbbfa4',.09);strokeRoad(3.25,4.95,a,b,'#a69b8e',.09);strokeRoad(1.82,1.97,a,b,'#ddd6bf')}
  }
  function median(a,b){const m=(a+b)/2;if(medianOpen(m))return;const A=section(a),B=section(b);
   const tip=z=>Math.min(1,...streets.map(j=>clamp((Math.abs(z-j.station)-(j.signal?13:5.8))/2.3,0,1)));
@@ -36,7 +41,7 @@ export function layers(F,H){const {face,ground,worldLine}=H;
  function branches(){for(const j of streets){if(Math.abs(j.station-F.s.z)>700)continue;const w=westAt(j.station);const h=j.halfWidth;
   const cuts=[w+.15,w-2,w-5,w-10,w-16,w-25,...j.pts.map(p=>p[0]).filter(x=>x<w-26)].sort((a,b)=>b-a);
   const ribbon=(x1,x2,c,edge1,edge2)=>{const p=branchZ(j,x1),q=branchZ(j,x2);face(F,[[x1,.015,p+edge1(x1)],[x1,.015,p+edge2(x1)],[x2,.015,q+edge2(x2)],[x2,.015,q+edge1(x2)]],c)};
-  const outer=x=>h+j.spread*Math.pow(clamp(1-(w-x)/11,0,1),2);
+  const outer=x=>branchWidth(j,x);
   for(let i=1;i<cuts.length;i++){const x1=cuts[i-1],x2=cuts[i];ribbon(x1,x2,'#b5a594',x=>-outer(x)-.46,x=>outer(x)+.46);ribbon(x1,x2,j.signal?'#555661':'#605d63',x=>-outer(x),outer);
    if(x1<w-12&&j.i===0){ribbon(x1,x2,'#a69d88',()=>-1.25,()=>1.25);ribbon(x1,x2,'#687350',()=>-1,()=>1)}else if(x1<w-5&&(j.i===0||j.i===4)){ribbon(x1,x2,'#ddae67',()=>-.12,()=>.12)}}
   if(j.i===0||j.i===4){const x=w-5.8,cz=branchZ(j,x);ground(F,x-.55,x,cz-h+.3,cz-.8,'#dfd7c0',.023);}
